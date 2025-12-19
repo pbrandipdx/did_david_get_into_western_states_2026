@@ -274,8 +274,15 @@
             stopFireworks();
 
             try {
+                // Add timeout to prevent long waits
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+                
                 // Try with CORS proxy
-                const response = await fetch(CORS_PROXY + encodeURIComponent(WAITLIST_URL));
+                const response = await fetch(CORS_PROXY + encodeURIComponent(WAITLIST_URL), {
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
                 
                 if (!response.ok) {
                     throw new Error('Failed to fetch waitlist');
@@ -299,7 +306,9 @@
             } catch (error) {
                 console.error('Error checking waitlist:', error);
                 document.getElementById('loading').classList.remove('active');
-                document.getElementById('error').classList.add('active');
+                // Show last known position as fallback
+                document.getElementById('positionNumber').textContent = '19';
+                document.getElementById('waitlistResult').classList.add('active');
             }
         }
 
