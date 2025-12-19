@@ -266,13 +266,6 @@
         let fireworksAnimationId = null;
 
         async function checkWaitlist() {
-            // Reset UI
-            document.getElementById('loading').classList.add('active');
-            document.getElementById('yesResult').classList.remove('active');
-            document.getElementById('waitlistResult').classList.remove('active');
-            document.getElementById('error').classList.remove('active');
-            stopFireworks();
-
             try {
                 // Add timeout to prevent long waits
                 const controller = new AbortController();
@@ -291,24 +284,18 @@
                 const html = await response.text();
                 const result = parseWaitlist(html);
 
-                // Hide loading
-                document.getElementById('loading').classList.remove('active');
-
                 if (result.accepted) {
                     // Show YES result with fireworks
+                    document.getElementById('waitlistResult').classList.remove('active');
                     document.getElementById('yesResult').classList.add('active');
                     startFireworks();
                 } else {
-                    // Show waitlist position
+                    // Update position if different
                     document.getElementById('positionNumber').textContent = result.position;
-                    document.getElementById('waitlistResult').classList.add('active');
                 }
             } catch (error) {
                 console.error('Error checking waitlist:', error);
-                document.getElementById('loading').classList.remove('active');
-                // Show last known position as fallback
-                document.getElementById('positionNumber').textContent = '19';
-                document.getElementById('waitlistResult').classList.add('active');
+                // Keep showing position 19 (already displayed)
             }
         }
 
@@ -465,6 +452,12 @@
 
         // Start checking on page load
         window.onload = () => {
+            // Show position immediately for fast loading
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('positionNumber').textContent = '19';
+            document.getElementById('waitlistResult').classList.add('active');
+            
+            // Try to fetch updated position in background
             checkWaitlist();
         };
     </script>
