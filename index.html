@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Western States 2026 - David Allamon Status</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #000000;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #fireworks-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            display: none;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            background: transparent;
+            border-radius: 0;
+            box-shadow: none;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            z-index: 2;
+        }
+
+        .loading {
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #333;
+            border-top: 4px solid #fff;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 1.2rem;
+            color: #fff;
+        }
+
+        .result {
+            display: none;
+        }
+
+        .result.active {
+            display: block;
+        }
+
+        .yes-result {
+            animation: scaleIn 0.8s ease-out;
+        }
+
+        @keyframes scaleIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .yes-text {
+            font-size: 8rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: none;
+            margin-bottom: 20px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
+        .success-message {
+            font-size: 2rem;
+            color: #fff;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .success-submessage {
+            font-size: 1.2rem;
+            color: #ccc;
+        }
+
+        .waitlist-result {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .not-yet-text {
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+
+        .position-container {
+            background: transparent;
+            padding: 40px;
+            border-radius: 0;
+            margin-bottom: 20px;
+        }
+
+        .position-label {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 10px;
+        }
+
+        .position-number {
+            font-size: 5rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: none;
+        }
+
+        .position-suffix {
+            font-size: 1.5rem;
+            color: #ccc;
+            margin-top: 10px;
+        }
+
+        .encouragement {
+            font-size: 1.1rem;
+            color: #ccc;
+            line-height: 1.6;
+            margin-top: 20px;
+        }
+
+        .error {
+            display: none;
+            color: #fff;
+            font-size: 1.2rem;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        .retry-button {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .retry-button:hover {
+            background: #ccc;
+            transform: none;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .yes-text {
+                font-size: 5rem;
+            }
+            .success-message {
+                font-size: 1.5rem;
+            }
+            .position-number {
+                font-size: 3.5rem;
+            }
+            .not-yet-text {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="fireworks-canvas"></canvas>
+    
+    <div class="container">
+        <div class="loading active" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Checking Western States 2026 waitlist...</div>
+        </div>
+
+        <div class="result yes-result" id="yesResult">
+            <div class="yes-text">YES!</div>
+            <div class="success-message">🎉 David got into Western States 2026! 🎉</div>
+            <div class="success-submessage">Time to celebrate!</div>
+        </div>
+
+        <div class="result waitlist-result" id="waitlistResult">
+            <div class="not-yet-text">Not yet, but...</div>
+            <div class="position-container">
+                <div class="position-label">Position on Waitlist</div>
+                <div class="position-number">#<span id="positionNumber">-</span></div>
+                <div class="position-suffix">on the list</div>
+            </div>
+        </div>
+
+        <div class="error" id="error">
+            <p>Unable to fetch waitlist data. This might be due to CORS restrictions.</p>
+            <button class="retry-button" onclick="checkWaitlist()">Retry</button>
+        </div>
+    </div>
+
+    <script>
+        const WAITLIST_URL = 'https://www.wser.org/2026-wait-list/';
+        const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
+        const TARGET_FIRST_NAME = 'David';
+        const TARGET_LAST_NAME = 'Allamon';
+
+        let fireworksAnimationId = null;
+
+        async function checkWaitlist() {
+            // Reset UI
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('yesResult').classList.remove('active');
+            document.getElementById('waitlistResult').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+            stopFireworks();
+
+            try {
+                // Try with CORS proxy
+                const response = await fetch(CORS_PROXY + encodeURIComponent(WAITLIST_URL));
+                
+                if (!response.ok) {
+                    throw new Error('Failed to fetch waitlist');
+                }
+
+                const html = await response.text();
+                const result = parseWaitlist(html);
+
+                // Hide loading
+                document.getElementById('loading').classList.remove('active');
+
+                if (result.accepted) {
+                    // Show YES result with fireworks
+                    document.getElementById('yesResult').classList.add('active');
+                    startFireworks();
+                } else {
+                    // Show waitlist position
+                    document.getElementById('positionNumber').textContent = result.position;
+                    document.getElementById('waitlistResult').classList.add('active');
+                }
+            } catch (error) {
+                console.error('Error checking waitlist:', error);
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('error').classList.add('active');
+            }
+        }
+
+        function parseWaitlist(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const rows = doc.querySelectorAll('table tr');
+
+            for (let i = 1; i < rows.length; i++) { // Skip header row
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length < 4) continue;
+
+                const position = cells[0].textContent.trim();
+                const status = cells[1].textContent.trim();
+                const firstName = cells[2].textContent.trim();
+                const lastName = cells[3].textContent.trim();
+
+                // Check if this is David Allamon
+                if (firstName === TARGET_FIRST_NAME && lastName === TARGET_LAST_NAME) {
+                    // Check if status indicates he got in (starts with "Entered")
+                    const accepted = status.toLowerCase().includes('entered');
+                    
+                    return {
+                        position: position,
+                        accepted: accepted
+                    };
+                }
+            }
+
+            // Name not found - might be an error
+            throw new Error('Name not found in waitlist');
+        }
+
+        // Fireworks animation
+        function startFireworks() {
+            const canvas = document.getElementById('fireworks-canvas');
+            canvas.style.display = 'block';
+            const ctx = canvas.getContext('2d');
+            
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            const fireworks = [];
+            const particles = [];
+
+            class Firework {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = canvas.height;
+                    this.targetY = Math.random() * canvas.height * 0.5;
+                    this.speed = 3 + Math.random() * 2;
+                    this.hue = Math.random() * 360;
+                }
+
+                update() {
+                    this.y -= this.speed;
+                    return this.y > this.targetY;
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsl(${this.hue}, 100%, 50%)`;
+                    ctx.fill();
+                }
+
+                explode() {
+                    for (let i = 0; i < 50; i++) {
+                        particles.push(new Particle(this.x, this.y, this.hue));
+                    }
+                }
+            }
+
+            class Particle {
+                constructor(x, y, hue) {
+                    this.x = x;
+                    this.y = y;
+                    this.hue = hue + Math.random() * 30 - 15;
+                    this.velocity = {
+                        x: (Math.random() - 0.5) * 8,
+                        y: (Math.random() - 0.5) * 8
+                    };
+                    this.alpha = 1;
+                    this.decay = 0.015;
+                }
+
+                update() {
+                    this.velocity.y += 0.1;
+                    this.x += this.velocity.x;
+                    this.y += this.velocity.y;
+                    this.alpha -= this.decay;
+                    return this.alpha > 0;
+                }
+
+                draw() {
+                    ctx.save();
+                    ctx.globalAlpha = this.alpha;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = `hsl(${this.hue}, 100%, 50%)`;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function animate() {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Add new fireworks randomly
+                if (Math.random() < 0.05) {
+                    fireworks.push(new Firework());
+                }
+
+                // Update and draw fireworks
+                for (let i = fireworks.length - 1; i >= 0; i--) {
+                    const fw = fireworks[i];
+                    fw.draw();
+                    if (!fw.update()) {
+                        fw.explode();
+                        fireworks.splice(i, 1);
+                    }
+                }
+
+                // Update and draw particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.draw();
+                    if (!p.update()) {
+                        particles.splice(i, 1);
+                    }
+                }
+
+                fireworksAnimationId = requestAnimationFrame(animate);
+            }
+
+            animate();
+        }
+
+        function stopFireworks() {
+            if (fireworksAnimationId) {
+                cancelAnimationFrame(fireworksAnimationId);
+                fireworksAnimationId = null;
+            }
+            document.getElementById('fireworks-canvas').style.display = 'none';
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            const canvas = document.getElementById('fireworks-canvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        });
+
+        // Start checking on page load
+        window.onload = () => {
+            checkWaitlist();
+        };
+    </script>
+</body>
+</html>
+
