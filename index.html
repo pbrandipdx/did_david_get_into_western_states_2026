@@ -304,29 +304,59 @@
             const doc = parser.parseFromString(html, 'text/html');
             const rows = doc.querySelectorAll('table tr');
 
+            let davidRowIndex = -1;
+            let davidStatus = '';
+
+            // First, find David's row
             for (let i = 1; i < rows.length; i++) { // Skip header row
                 const cells = rows[i].querySelectorAll('td');
                 if (cells.length < 4) continue;
 
-                const position = cells[0].textContent.trim();
-                const status = cells[1].textContent.trim();
                 const firstName = cells[2].textContent.trim();
                 const lastName = cells[3].textContent.trim();
 
                 // Check if this is David Allamon
                 if (firstName === TARGET_FIRST_NAME && lastName === TARGET_LAST_NAME) {
-                    // Check if status indicates he got in (starts with "Entered")
-                    const accepted = status.toLowerCase().includes('entered');
-                    
-                    return {
-                        position: position,
-                        accepted: accepted
-                    };
+                    davidRowIndex = i;
+                    davidStatus = cells[1].textContent.trim();
+                    break;
                 }
             }
 
-            // Name not found - might be an error
-            throw new Error('Name not found in waitlist');
+            if (davidRowIndex === -1) {
+                throw new Error('Name not found in waitlist');
+            }
+
+            // Check if David got in
+            const accepted = davidStatus.toLowerCase().includes('entered');
+            
+            if (accepted) {
+                return {
+                    position: 0,
+                    accepted: true
+                };
+            }
+
+            // Count how many people ABOVE David still have empty Status
+            let waitingAheadOfDavid = 0;
+            for (let i = 1; i < davidRowIndex; i++) {
+                const cells = rows[i].querySelectorAll('td');
+                if (cells.length < 2) continue;
+                
+                const status = cells[1].textContent.trim();
+                // If status is empty or doesn't contain "Entered", they're still waiting
+                if (!status || !status.toLowerCase().includes('entered')) {
+                    waitingAheadOfDavid++;
+                }
+            }
+
+            // David's actual position in line = people waiting ahead + 1
+            const actualPosition = waitingAheadOfDavid + 1;
+
+            return {
+                position: actualPosition,
+                accepted: false
+            };
         }
 
         // Fireworks animation
@@ -454,7 +484,7 @@
         window.onload = () => {
             // Show position immediately for fast loading
             document.getElementById('loading').classList.remove('active');
-            document.getElementById('positionNumber').textContent = '19';
+            document.getElementById('positionNumber').textContent = '10';
             document.getElementById('waitlistResult').classList.add('active');
             
             // Try to fetch updated position in background
