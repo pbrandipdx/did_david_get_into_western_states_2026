@@ -1,6 +1,6 @@
 # Western States 2026 Waitlist Checker
 
-A simple, beautiful single-page website that automatically checks if David Allamon got into the Western States 2026 race.
+A simple, beautiful single-page website that automatically checks if David got into the Western States 2026 race.
 
 ## Features
 
