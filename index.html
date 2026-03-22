@@ -326,9 +326,9 @@
         function parseWaitlist(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const table = doc.querySelector('table');
-        if (!table) throw new Error('No table found on waitlist page');
-        const rows = table.querySelectorAll('tr');
+                const table = doc.querySelector('table');
+            if (!table) throw new Error('No table found on waitlist page');
+            const rows = table.querySelectorAll('tr');
 
             let davidRowIndex = -1;
             let davidStatus = '';
@@ -504,8 +504,10 @@
         // Handle window resize
         window.addEventListener('resize', () => {
             const canvas = document.getElementById('fireworks-canvas');
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+            if (canvas.style.display !== 'none') {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
         });
 
         window.onload = () => {
