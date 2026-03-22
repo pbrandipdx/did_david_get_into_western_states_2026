@@ -248,7 +248,9 @@
             <div class="position-container">
                 <div class="position-label">David's Position on the Western States 2026 Waitlist:</div>
                 <div class="position-number">#<span id="positionNumber">-</span></div>
+                <div class="position-suffix">on the waitlist</div>
             </div>
+            <div class="encouragement">Hang tight — the list moves! In 2025 the 65th runner got in Thursday before the race; in 2024 the 35th got in Friday afternoon.</div>
         </div>
 
         <div class="error" id="error">
@@ -324,7 +326,9 @@
         function parseWaitlist(html) {
             const parser = new DOMParser();
             const doc = parser.parseFromString(html, 'text/html');
-            const rows = doc.querySelectorAll('table tr');
+            const table = doc.querySelector('table');
+        if (!table) throw new Error('No table found on waitlist page');
+        const rows = table.querySelectorAll('tr');
 
             let davidRowIndex = -1;
             let davidStatus = '';
@@ -465,19 +469,21 @@
                 // Update and draw fireworks
                 for (let i = fireworks.length - 1; i >= 0; i--) {
                     const fw = fireworks[i];
-                    fw.draw();
                     if (!fw.update()) {
                         fw.explode();
                         fireworks.splice(i, 1);
+                    } else {
+                        fw.draw();
                     }
                 }
 
                 // Update and draw particles
                 for (let i = particles.length - 1; i >= 0; i--) {
                     const p = particles[i];
-                    p.draw();
                     if (!p.update()) {
                         particles.splice(i, 1);
+                    } else {
+                        p.draw();
                     }
                 }
 
